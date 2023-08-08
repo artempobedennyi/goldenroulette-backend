@@ -2,8 +2,8 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var newSchema = new Schema({
-  'name': { type: String, default : "" },
-  'emailId': { type: String, default : "" },
+  'name': { type: String, default : "", unique: true },
+  'email': { type: String, default : "", unique: true },
   'password': { type: String, default : "" },
   'createdAt': { type: Date, default: Date.now },
   'updatedAt': { type: Date, default: Date.now }

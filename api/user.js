@@ -14,10 +14,11 @@ const UserService = require('../services/userService');
 // API to login and register new user, dont required any auth in headers (check auth middleware)
 router.post('/login', asyncHandler((req, res, next) => {return UserService.loginUser(req, res)}))
 router.post('/register', asyncHandler((req, res, next) => {return UserService.registerUser(req, res)}))
-
+router.post('/exist', asyncHandler((req, res, next) => {return UserService.existUser(req, res)}))
 
 // API to view user detail, required auth in headers  (check auth middleware)
-router.get('/profile', asyncHandler((req, res, next) => {return UserService.profile(req, res)}))
+router.post('/me', asyncHandler((req, res, next) => {return UserService.checkMe(req, res)}))
+
 
 
 

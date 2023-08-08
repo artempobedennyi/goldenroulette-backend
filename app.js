@@ -12,7 +12,7 @@ const dev = process.env.NODE_ENV !== 'production'
 const app = express();
 
 
-if(dev){
+if (dev) {
     // loading environment variable from different path in case of dev server
 	require('dotenv').config({path : path.resolve(process.cwd(), '.env.development.local')})
 
@@ -20,25 +20,25 @@ if(dev){
 	app.use(cors())
 	app.options('*', cors())
 
-    //Enable logs in dev environment
+    // Enable logs in dev environment
     app.use(morgan('dev'));
 }else{
-    //loading environment variable from default file '.env'
+    // loading environment variable from default file '.env'
 	require('dotenv').config()
 
-    //disabling all console.logs in prod environment
+    // disabling all console.logs in prod environment
 	console.log = function () {};
 
     // Allow api call only from trusted website on production, in this case it will be your app server(react/ angular) url
 	// var whitelist = ['https://google.com']
 	var corsOptions = {
-	origin: function (origin, callback) {
-		if (whitelist.indexOf(origin) !== -1) {
-		    callback(null, true)
-		} else {
-		    callback(new Error('Not allowed by CORS'))
+		origin: function (origin, callback) {
+			if (whitelist.indexOf(origin) !== -1) {
+				callback(null, true)
+			} else {
+				callback(new Error('Not allowed by CORS'))
+			}
 		}
-	}
 	}
 	app.use(cors())
 	app.options(corsOptions, cors()) 
@@ -47,13 +47,13 @@ if(dev){
 
 // middleware js is a function that will have all the access for requesting an object, responding to an object, and moving to the next middleware function in the application request-response cycle.
 
-//loading middlewares
+// loading middlewares
 const errorMiddlewares = require('./middlewares/error');
 const apiResponseMiddleware = require('./middlewares/response');
 const authMiddleware = require('./middlewares/auth');
 
 
-//loading db config values
+// loading db config values
 const dbConfig = require('./config/db');
 
 
@@ -86,19 +86,19 @@ app.use(express.json());
 app.use(fileUpload());
 
 
-//adding response middleware to structure all API responses in specific format
+// adding response middleware to structure all API responses in specific format
 app.use(apiResponseMiddleware());
 
 
-//adding auth middleware to check if user token is valid or not before running protected apis
+// adding auth middleware to check if user token is valid or not before running protected apis
 app.all('*', authMiddleware.checkAuthToken)
 
 
-//adding all api routes to app
+// adding all api routes to app
 const v1 = require('./api');
 app.use('/', v1)
 
-//adding error middleware that will return error message incase of server error
+// adding error middleware that will return error message in case of server error
 app.use(errorMiddlewares.notFound);
 app.use(errorMiddlewares.errorHandler);
 

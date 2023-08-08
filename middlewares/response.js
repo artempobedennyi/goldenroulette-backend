@@ -31,7 +31,7 @@ module.exports = function(opts){
 			res.status(200);
 			res.json({
 				success: true,
-				payload:response
+				payload: response
 			})
 		};
 
@@ -39,7 +39,7 @@ module.exports = function(opts){
 			res.status(200);
 			res.json({
 				success: false,
-				message:response
+				message: response
 			})
 		};
 
