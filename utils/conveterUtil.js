@@ -1,7 +1,7 @@
-// const _ = require('lodash')
+const getSlug = (name) => {
+    return name.toLowerCase().replace(/ /g,"_")
+};
 
-module.exports = {
-    getSlug : (name) => {
-        return name.toLowerCase().replace(/ /g,"_")
-    }
-}
+export {
+    getSlug,
+};

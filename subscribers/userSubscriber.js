@@ -1,6 +1,6 @@
-module.exports = function(app) {
+const userSubscriber = (app) => {
 
-    const eventEmitter = app.get("eventEmitter")
+    const eventEmitter = app.get("eventEmitter");
     
     // This event will fire when users logged in, we can execute task 
     // like sending welcome notification or SMS and this will not interfere the main API
@@ -16,3 +16,5 @@ module.exports = function(app) {
     });
     
 };
+
+export default userSubscriber;

@@ -1,98 +1,144 @@
-const User = require("../models/User")
-const jwt = require('jwt-simple');
-const secret = process.env.JWT_SECRET;
-const sha256 = require('sha256')
+import User from "../models/User.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import generateTokens from "../utils/generateTokens.js";
+import { 
+    signUpBodyValidation,
+    logInBodyValidation,
+    refreshTokenBodyValidation,
+    existCheckBodyValidation,
+} from "../utils/validationSchema.js";
+import verifyRefreshToken from "../utils/verifyRefreshToken.js";
+import authConfig from "../config/auth.js";
 
+const registerUser = async (req, res) => {
+    console.log(req.body);
+    
+    const { error } = signUpBodyValidation(req.body);
+    if (error) {
+        return res.apiError(error.details[0].message);
+    }        
 
-module.exports = {
+    const uForEmail = await User.findOne({
+        email : req.body.email.toLowerCase()
+    });
+    if (uForEmail)
+        return res.apiError("This Email is already registered!");
 
-    profile : async(req, res) => {
-        let u = await User.findOne({_id : req.user.userId})
-        res.apiSuccess(u)
-    },
+    const uForName = await User.findOne({
+        userName : req.body.userName.toLowerCase()
+    })
+    if (uForName)
+        return res.apiError("This Username is already registered!");
 
-    registerUser: async(req, res) => {
-        let {email, password, name} = req.body
+    const salt = await bcrypt.genSalt(authConfig.salt);
+    const hashPasswod = await bcrypt.hash(req.body.password, salt);
+    const user = await User({ ...req.body, password: hashPasswod }).save();
 
-        if (!email) 
-            return res.apiError("Email Id is required")
+    return res.apiSuccess({
+        id: user._id,
+        userName : user.userName,
+        email : user.email,
+    });
+};
 
-        if (!name)
-            return res.apiError("Username is required")
+const loginUser =  async (req, res) => {
+    try {
+        const { error } = logInBodyValidation(req.body);
+        if (error)
+            return res.apiError(error.details[0].message);
 
-        if (!password || password.trim().length == 0)
-            return res.apiError("Password is required")
+        const user = await User.findOne({ userName: req.body.userName });
+        if (!user) 
+            return res.apiError("Unexisting username");
 
-        let uForEmail = await User.findOne({email : email.toLowerCase()})
-        let uForName = await User.findOne({name : name.toLowerCase()})
+        const verifiedPassword = await bcrypt.compare(
+            req.body.password,
+            user.password
+        );
 
-        if (uForEmail) {
-            return res.apiError("This Email is already registered!")
-        } else if (uForName) {
-            return res.apiError("This Username is already registered!")
-        } else {
-            password = sha256(password)
+        if (!verifiedPassword)
+            return res.apiError("Invalid Password");
 
-            let credential = {
-                email: email.toLowerCase(),
-                password: password,
-                name: name.toLowerCase()
-            }
-            u = await User.create(credential)
-            let data = {
-                userID: u.id,
-                userName : u.name,
-                token : jwt.encode({userId : u.id.toString(), time : new Date().getTime()}, secret)
-            }
-            return res.apiSuccess(data)
-        }
-    },
+        const { accessToken, refreshToken } = await generateTokens(user);
 
-    loginUser: async(req, res) => {
-        let {name, password} = req.body
-
-        let u = await User.findOne({name : name.toLowerCase()})
-        if (u) {
-            password = sha256(password)
-            if(u.password == password){
-                let data = {
-                    userID: u.id,
-                    userName : u.name,
-                    token : jwt.encode({userId : u.id.toString(), time : new Date().getTime()}, secret)
-                }
-                req.app.get("eventEmitter").emit('login', 'Test event emitter');
-                return res.apiSuccess(data)
-            }
-            return res.apiError("Invalid Password")
-        }
-        return res.apiError("Invalid Username")
-    },
-
-    existUser: async(req, res) => {
-        let {username} = req.body
-
-        let u = await User.findOne({name : username.toLowerCase()})
-        if (u) {
-            let data = {
-                id: u.id,
-                name : u.name,
-            }
-            return res.apiSuccess(data)
-        }
-        return res.apiError("Unexisting username")
-    },
-
-    checkMe: async(req, res) => {
-        let {name} = req.body
-
-        let u = await User.findOne({name : name.toLowerCase()})
-        if (u) {
-            let data = {
-                userID: u.id,
-                userName : u.name,
-            }
-            return res.apiSuccess(data)
-        }
-        return res.apiError("Unexisting username")
+        req.app.get("eventEmitter").emit('login', 'Test event emitter');
+        
+        return res.apiSuccess({
+            id: user._id,
+            userName : user.userName,
+            email : user.email,
+            accessToken,
+            refreshToken,
+            expiryTime: authConfig.jwtExpiration
+        })
+    } catch (err) {
+        console.log(err);
+        return res.apiError("Internal Server Error");
     }
-}
+};
+
+const refreshToken = async (req, res) => {
+    try {
+        const { error } = refreshTokenBodyValidation(req.body);
+        if (error)
+            return res.apiError(error.details[0].message);
+
+            verifyRefreshToken(req.body.refreshToken)
+            .then(({ tokenDetails }) => {
+                const payload = { 
+                    _id: tokenDetails._id, 
+                    name: tokenDetails.name,
+                    time : new Date().getTime(),
+                };
+
+                const accessToken = jwt.sign(
+                    payload,
+                    authConfig.accessTokenSecret,
+                    { expiresIn: authConfig.jwtExpiration }
+                );
+
+                return res.apiSuccess({
+                    id: tokenDetails._id,
+                    userName : tokenDetails.name,
+                    accessToken,
+                    expiryTime: authConfig.jwtExpiration
+                })
+            })
+            .catch((err) => {
+                console.log(err);
+                res.apiError(err.message);
+            });
+    } catch (err) {
+        console.log(err);
+        return res.apiError("Internal Server Error");
+    }
+};
+
+const existUser = async (req, res) => {
+    try {
+        const { error } = existCheckBodyValidation(req.body);
+        if (error) 
+            return res.apiError(error.details[0].message);
+
+        const user = await User.findOne({ userName: req.body.userName.toLowerCase() });
+        if (!user) {
+            return res.apiError("Unexisting userName");
+        }
+
+        return res.apiSuccess({
+            id: user._id,
+            userName: user.userName
+        });
+    } catch (err) {
+        console.log(err);
+        return res.apiError("Internal Server Error");
+    }
+};
+
+export {
+    registerUser,
+    loginUser,
+    refreshToken,
+    existUser,
+};

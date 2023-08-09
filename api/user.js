@@ -1,26 +1,22 @@
-var express = require('express');
-var router = express.Router();
+import { Router } from "express";
+import asyncHandler from "express-async-handler";
 
-router.get('/', function(req, res, next) {
-	return res.json({d : "Working User API"});
-});
+const userRoute = Router();
 
+import { 
+	registerUser,
+	loginUser,
+	refreshToken,
+	existUser,
+} from "../services/userService.js";
 
-const asyncHandler = require('express-async-handler')
-const UserService = require('../services/userService');
+// API routes dont required any auth in headers (check auth middleware)
+userRoute.post("/login", asyncHandler((req, res, next) => { return loginUser(req, res); }));
+userRoute.post("/register", asyncHandler((req, res, next) => { return registerUser(req, res); }));
+userRoute.post("/refresh", asyncHandler((req, res, next) => { return refreshToken(req, res); }));
 
+// API routes required auth in headers  (check auth middleware)
+userRoute.post("/exist", asyncHandler((req, res, next) => { return existUser(req, res); }));
+userRoute.post("/me", asyncHandler((req, res, next) => { return existUser(req, res); }));
 
-
-// API to login and register new user, dont required any auth in headers (check auth middleware)
-router.post('/login', asyncHandler((req, res, next) => {return UserService.loginUser(req, res)}))
-router.post('/register', asyncHandler((req, res, next) => {return UserService.registerUser(req, res)}))
-router.post('/exist', asyncHandler((req, res, next) => {return UserService.existUser(req, res)}))
-
-// API to view user detail, required auth in headers  (check auth middleware)
-router.post('/me', asyncHandler((req, res, next) => {return UserService.checkMe(req, res)}))
-
-
-
-
-
-module.exports = router;
+export default userRoute;

@@ -1,10 +1,11 @@
-var express = require('express');
-const app = express();
+import express from "express";
+const defaultRoutes = express.Router();
 
-const userRoute = require('./user');
-const publicRoute = require('./public');
+defaultRoutes.get("/", function(req, res, next) {
+	return res.json({d : "Working User API"});
+});
 
-app.use('/auth', userRoute)
-app.use('/public', publicRoute)
+import userRoute from "./user.js";
+defaultRoutes.use("/auth", userRoute);
 
-module.exports = app;
+export default defaultRoutes;

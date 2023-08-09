@@ -1,7 +1,13 @@
+import { config } from "dotenv";
+
+config();
+
 // Config file for mongo db to connect via mongoose library
-var config = {
+const dbConfig = {
     url : process.env.MONGO_URL,
-    options : {useNewUrlParser: true,  useUnifiedTopology: true}
+    options : {
+        useNewUrlParser: true,  useUnifiedTopology: true
+    }
 };
 
-module.exports = config
+export default dbConfig;

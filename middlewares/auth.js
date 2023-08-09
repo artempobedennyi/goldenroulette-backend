@@ -1,17 +1,17 @@
-var jwt = require('jwt-simple');
-var secret = process.env.JWT_SECRET;
+import jwt from "jsonwebtoken";
+import authConfig from "../config/auth.js";
 
-/*
- * call other imported services, or same service but different functions here if you need to
-*/
-const checkAuthToken = async (req, res, next) => {
+const { TokenExpiredError } = jwt;
+
+const authMiddleware = (req, res, next) => {
     // check header or url parameters or post parameters for token
     const nonSecurePaths = [
       '/',
+      '/auth',
       '/public',
       '/auth/login', 
       '/auth/register',
-      '/auth/exist',
+      '/auth/refresh',
     ];
 
     if (nonSecurePaths.includes(req.path)) 
@@ -20,31 +20,36 @@ const checkAuthToken = async (req, res, next) => {
     if (req.path.substring(1,7) == "public" || req.path.substring(1,7) == "upload")
       return next();
 
-    var token = req.body.token || req.query.token || req.headers['Authorization'] || req.headers['authorization'];
+    var token = req.body.token || 
+      req.query.token || 
+      req.headers['Authorization'] || 
+      req.headers['authorization'];
 
     // decode token
     try {
         if (token && token.split(" ").length == 2 && token.split(" ")[1]) {
           // verifies secret and checks exp
-          token = token.split(" ")[1]
-          var decoded = jwt.decode(token, secret);
-            console.log(decoded); //=> { foo: 'bar' }
-            if(!decoded) {
-              return res.sendStatus(403);
-            }else{
-              req.user = decoded;
-              next();
+          token = token.split(" ")[1];
+
+          jwt.verify(token, authConfig.accessTokenSecret, (error, decoded) => {
+            if (error) {
+              if (error instanceof TokenExpiredError) {
+                return res.apiError("Unauthorized! Access Token was expired!");
+              } else {            
+                return res.apiError("Unauthorized!");
+              }
             }
+
+            req.user = decoded;
+            next();
+          });
         } else {
-          req.errorMessage = 'No Token Provided!';
-          return res.sendStatus(403);
+          return res.apiError("No token provided!");
         }
-    } catch{
-      return res.sendStatus(403);
+    } catch (error) {
+      console.log(error);
+      return res.apiError(error.message);
     }
 }
 
-
-module.exports = {
-  checkAuthToken
-}
+export default authMiddleware;

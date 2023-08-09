@@ -1,27 +1,49 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+import mongoose from "mongoose";
 
-var newSchema = new Schema({
-  'name': { type: String, default : "", unique: true },
-  'email': { type: String, default : "", unique: true },
-  'password': { type: String, default : "" },
-  'createdAt': { type: Date, default: Date.now },
-  'updatedAt': { type: Date, default: Date.now }
+const Schema = mongoose.Schema;
+
+const userSchema = new Schema({
+  userName: { 
+    type: String, 
+    required: true,
+    unique: true, 
+  },
+  email: { 
+    type: String, 
+    required: true,
+    unique: true,
+  },
+  password: { 
+    type: String, 
+    required: true,
+  },
+  roles: {
+    type: [String],
+    enum: ['user', 'admin', 'super_admin'],
+    default: ['user'],
+  },
+  createdAt: { 
+    type: Date, 
+    default: Date.now, 
+  },
+  updatedAt: { 
+    type: Date, 
+    default: Date.now,
+  }
 });
 
-newSchema.pre('save', function(next){
+userSchema.pre('save', function(next){
   this.updatedAt = Date.now();
   next();
 });
 
-newSchema.pre('update', function() {
+userSchema.pre('update', function() {
   this.update({}, { $set: { updatedAt: Date.now() } });
 });
 
-newSchema.pre('findOneAndUpdate', function() {
+userSchema.pre('findOneAndUpdate', function() {
   this.update({}, { $set: { updatedAt: Date.now() } });
 });
 
-
-
-module.exports = mongoose.model('User', newSchema);
+const User = mongoose.model('User', userSchema);
+export default User;

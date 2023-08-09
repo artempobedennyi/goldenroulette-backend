@@ -1,7 +1,8 @@
+import userSubscriber from "./userSubscriber.js";
 
-module.exports = function(app) {
-
+const defaultSubscriber = (app) => {
     // loading subscribers related to user events
-    require('./userSubscriber')(app)
-
+    userSubscriber(app);
 };
+
+export default defaultSubscriber;
