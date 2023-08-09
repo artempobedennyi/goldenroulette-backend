@@ -14,9 +14,10 @@ import {
 userRoute.post("/login", asyncHandler((req, res, next) => { return loginUser(req, res); }));
 userRoute.post("/register", asyncHandler((req, res, next) => { return registerUser(req, res); }));
 userRoute.post("/refresh", asyncHandler((req, res, next) => { return refreshToken(req, res); }));
+userRoute.post("/exist", asyncHandler((req, res, next) => { return existUser(req, res); }));
 
 // API routes required auth in headers  (check auth middleware)
-userRoute.post("/exist", asyncHandler((req, res, next) => { return existUser(req, res); }));
+
 userRoute.post("/me", asyncHandler((req, res, next) => { return existUser(req, res); }));
 
 export default userRoute;

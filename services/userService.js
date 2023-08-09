@@ -63,14 +63,15 @@ const loginUser =  async (req, res) => {
         const { accessToken, refreshToken } = await generateTokens(user);
 
         req.app.get("eventEmitter").emit('login', 'Test event emitter');
-        
+
         return res.apiSuccess({
             id: user._id,
             userName : user.userName,
-            email : user.email,
-            accessToken,
-            refreshToken,
-            expiryTime: authConfig.jwtExpiration
+            token: {
+                accessToken,
+                refreshToken,
+                expiryTime: authConfig.jwtExpiration
+            },
         })
     } catch (err) {
         console.log(err);
@@ -86,24 +87,25 @@ const refreshToken = async (req, res) => {
 
             verifyRefreshToken(req.body.refreshToken)
             .then(({ tokenDetails }) => {
-                const payload = { 
-                    _id: tokenDetails._id, 
-                    name: tokenDetails.name,
-                    time : new Date().getTime(),
-                };
-
-                const accessToken = jwt.sign(
-                    payload,
-                    authConfig.accessTokenSecret,
-                    { expiresIn: authConfig.jwtExpiration }
-                );
-
-                return res.apiSuccess({
-                    id: tokenDetails._id,
-                    userName : tokenDetails.name,
-                    accessToken,
-                    expiryTime: authConfig.jwtExpiration
+                generateTokens({
+                    _id: tokenDetails._id,
+                    userName: tokenDetails.name,
                 })
+                .then(({ accessToken, refreshToken}) => {
+                    return res.apiSuccess({
+                        id: tokenDetails._id,
+                        userName : tokenDetails.name,
+                        token: {
+                            accessToken,
+                            refreshToken,
+                            expiryTime: authConfig.jwtExpiration
+                        },
+                    })
+                })
+                .catch((err) => {
+                    console.log(err);
+                    res.apiError(err.message);
+                });;
             })
             .catch((err) => {
                 console.log(err);

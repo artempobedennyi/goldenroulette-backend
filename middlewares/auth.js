@@ -7,8 +7,7 @@ const authMiddleware = (req, res, next) => {
     // check header or url parameters or post parameters for token
     const nonSecurePaths = [
       '/',
-      '/auth',
-      '/public',
+      '/auth/exist',
       '/auth/login', 
       '/auth/register',
       '/auth/refresh',

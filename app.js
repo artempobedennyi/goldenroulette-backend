@@ -56,7 +56,7 @@ defaultSubscriber(app);
 import defaultScheduler from "./schedulers/index.js";
 defaultScheduler();
 
-// starts a server and listens on port [3000] for connections.
+// starts a server and listens on port [8080] for connections.
 const { SERVER_PORT: port = 8080 } = process.env;
 app.listen( { port }, () => {
     console.log(`Listening: http://localhost:${port}`);
