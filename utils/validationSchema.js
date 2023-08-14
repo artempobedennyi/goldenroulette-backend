@@ -32,9 +32,17 @@ const existCheckBodyValidation = (body) => {
     return schema.validate(body);
 };
 
+const makeBetBodyValidation = (body) => {
+    const schema = Joi.object({
+        amount: Joi.number().required().greater(0).label("Amount"),
+    });
+    return schema.validate(body);    
+};
+
 export {
     signUpBodyValidation,
     logInBodyValidation,
     refreshTokenBodyValidation,
     existCheckBodyValidation,
+    makeBetBodyValidation,
 };

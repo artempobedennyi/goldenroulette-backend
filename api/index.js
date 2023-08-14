@@ -8,4 +8,7 @@ defaultRoutes.get("/", function(req, res, next) {
 import userRoute from "./user.js";
 defaultRoutes.use("/auth", userRoute);
 
+import betRoute from "./bet.js";
+defaultRoutes.use("/bet", betRoute);
+
 export default defaultRoutes;

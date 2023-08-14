@@ -11,6 +11,7 @@ const authMiddleware = (req, res, next) => {
       '/auth/login', 
       '/auth/register',
       '/auth/refresh',
+      '/socket.io'
     ];
 
     if (nonSecurePaths.includes(req.path)) 
@@ -39,7 +40,7 @@ const authMiddleware = (req, res, next) => {
               }
             }
 
-            req.user = decoded;
+            req.jwtPayload = decoded;
             next();
           });
         } else {

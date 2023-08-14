@@ -5,8 +5,8 @@ import authConfig from "../config/auth.js";
 const generateTokens = async (user) => {
     try {
         const payload = { 
-            _id: user._id, 
-            name: user.userName, 
+            userId: user._id, 
+            userName: user.userName, 
             time : new Date().getTime(),
         };
 
