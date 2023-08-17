@@ -60,13 +60,17 @@ const loginUser =  async (req, res) => {
         if (!verifiedPassword)
             return res.apiError("Invalid Password");
 
-        const { accessToken, refreshToken } = await generateTokens(user);
+        const { accessToken, refreshToken } = await generateTokens({
+            id: user._id,
+            name: user.userName,
+        });
 
         req.app.get("eventEmitter").emit('login', 'Test event emitter');
 
         return res.apiSuccess({
             id: user._id,
             userName : user.userName,
+            balance: user.balance,
             token: {
                 accessToken,
                 refreshToken,
@@ -88,8 +92,8 @@ const refreshToken = async (req, res) => {
             verifyRefreshToken(req.body.refreshToken)
             .then(({ tokenDetails }) => {
                 generateTokens({
-                    _id: tokenDetails._id,
-                    userName: tokenDetails.name,
+                    id: tokenDetails.id,
+                    name: tokenDetails.name,
                 })
                 .then(({ accessToken, refreshToken}) => {
                     return res.apiSuccess({
@@ -130,7 +134,8 @@ const existUser = async (req, res) => {
 
         return res.apiSuccess({
             id: user._id,
-            userName: user.userName
+            userName: user.userName,
+            balance: user.balance
         });
     } catch (err) {
         console.log(err);

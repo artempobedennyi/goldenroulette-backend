@@ -70,8 +70,26 @@ const loadEnvConfig = () => {
     }
 };
 
+import User from "../models/User.js";
+
+const getBalance = async (userName) => {
+    try {
+        const user = await User.findOne({ userName: userName });
+        
+        if (!user)
+            return null;
+
+        return user.balance;
+
+    } catch (err) {
+        console.log(err);
+        return null;
+    }
+}
+
 export {
     configuration,
     dbConnect,
     loadEnvConfig,
+    getBalance,
 };

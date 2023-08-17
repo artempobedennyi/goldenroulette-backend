@@ -6,6 +6,7 @@ config();
 const gameConfig = {
     waitTime: process.env.GAME_WAIT_TIME,
     runTime: process.env.GAME_RUN_TIME,
+    finishTime: process.env.GAME_FINISH_TIME,
     socketUrl: process.env.SOCKET_IO_URL,
 };
 

@@ -19,7 +19,7 @@ const makeBet = async (req, res, next) => {
         }
 
         let bet = await Bet({
-            user: req.jwtPayload.userId,
+            user: req.jwtPayload.id,
             amount: req.body.amount
         }).save();
 
@@ -36,7 +36,9 @@ const makeBet = async (req, res, next) => {
         
         const io = SocketService.socketGetIO();
         io.emit('player_bet', {
-            'userName': bet.user.userName
+            'betId': bet._id,
+            'userName': bet.user.userName,
+            'amount': bet.amount
         });
 
         return res.apiSuccess({
@@ -59,10 +61,10 @@ const cancelBet = async (req, res, next) => {
         });
 
         if (!game || game.state !== 'starting') {
-            return res.apiError("cant make bet at this time");
+            return res.apiError("cant cancel bet at this time");
         }
 
-        let bet = game.bets.find((bet) => bet.user.id === req.jwtPayload.userId);
+        let bet = game.bets.find((bet) => bet.user.id === req.jwtPayload.id);
 
         if (bet) {
             bet.user.balance = bet.user.balance + bet.amount;
@@ -74,7 +76,8 @@ const cancelBet = async (req, res, next) => {
             const playerUserName = bet.user.userName;
             const io = SocketService.socketGetIO();
             io.emit('player_cancel', {
-                'userName': playerUserName
+                'userName': playerUserName,
+                'amount': bet.amount
             });
 
             const currentBet = await Bet.findById(bet._id);

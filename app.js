@@ -116,14 +116,28 @@ try {
 import { startGame } from "./services/gameService.js";
 import Game from "./models/Game.js";
 
+const finishTime = gameConfig.finishTime;
+const runTime = gameConfig.runTime;
+const waitTime = gameConfig.waitTime;
+
 startGame();
+
+let startFlag = false;
 
 const interVal = setInterval(async function () {
 	const lastGame = await Game.findOne().sort({ _id: -1 });
-	if (lastGame && lastGame.state === 'finished') {
-		startGame();
+	if (lastGame && lastGame.state === 'finished' && !startFlag) {
+		startFlag = true;
+		setTimeout(async () => {			
+			await startGame();
+			startFlag = false;			
+		}, finishTime);
 	}
 }, 1000);
+
+// setTimeout(() => {
+// 	clearInterval(interVal);
+// }, (finishTime + runTime + waitTime) + waitTime);
 
 
 export default app;

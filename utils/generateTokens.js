@@ -2,11 +2,11 @@ import jwt from "jsonwebtoken";
 import UserToken from "../models/UserToken.js";
 import authConfig from "../config/auth.js";
 
-const generateTokens = async (user) => {
+const generateTokens = async (data) => {
     try {
         const payload = { 
-            userId: user._id, 
-            userName: user.userName, 
+            id: data.id,
+            name: data.name, 
             time : new Date().getTime(),
         };
 
@@ -22,10 +22,14 @@ const generateTokens = async (user) => {
             { expiresIn: authConfig.jwtRefreshExpiration }
         );
 
-        const userToken = await UserToken.findOne({ userId: user._id });
+        const userToken = await UserToken.findOne({ userId: data.id });
         if (userToken) await userToken.deleteOne();
 
-        await new UserToken({ userId: user._id, token: refreshToken }).save();
+        await new UserToken({ 
+            userId: data.id, 
+            token: refreshToken 
+        }).save();
+        
         return Promise.resolve({ accessToken, refreshToken });
     } catch (err) {
         return Promise.reject(err);
