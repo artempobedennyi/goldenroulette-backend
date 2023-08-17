@@ -1,6 +1,7 @@
 import UserToken from "../models/UserToken.js";
 import jwt from "jsonwebtoken";
 import authConfig from "../config/auth.js";
+import User from "../models/User.js";
 
 const { TokenExpiredError } = jwt;
 
@@ -24,10 +25,20 @@ const verifyRefreshToken = (refreshToken) => {
                     return reject({ error: true, message: "Invalid refresh token!" });
                 }
                 
-                resolve({
-                    tokenDetails,
-                    error: false,
-                    message: "Valid refresh token",
+                User.findOne({ _id: userToken.userId })
+                .then((user) => {
+                    resolve({
+                        tokenDetails: {
+                            id: user._id,
+                            name : user.userName,
+                            balance: user.balance
+                        },
+                        error: false,
+                        message: "Valid refresh token",
+                    });
+                })
+                .catch((err) => {
+                    return reject({ error: true, message: err.message });
                 });
             });
         })

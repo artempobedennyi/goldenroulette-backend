@@ -95,10 +95,11 @@ const refreshToken = async (req, res) => {
                     id: tokenDetails.id,
                     name: tokenDetails.name,
                 })
-                .then(({ accessToken, refreshToken}) => {
+                .then(({ accessToken, refreshToken }) => {
                     return res.apiSuccess({
                         id: tokenDetails._id,
                         userName : tokenDetails.name,
+                        balance: tokenDetails.balance,
                         token: {
                             accessToken,
                             refreshToken,
